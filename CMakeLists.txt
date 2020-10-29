@@ -14,6 +14,15 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+SET(RW_ROOT "$ENV{RW_ROOT}")
+SET(RWS_ROOT "$ENV{RWS_ROOT}")
+SET(RWSIM_ROOT "$ENV{RWSIM_ROOT}")
+SET(RobWork_DIR ${RW_ROOT}/cmake)
+SET(RobWorkStudio_DIR ${RWS_ROOT}/cmake)
+#SET(RobWorkSim_DIR ${RWSIM_ROOT}/cmake)
+SET(CMAKE_BUILD_TYPE Release)
+FIND_PACKAGE(RobWork REQUIRED)
+FIND_PACKAGE(RobWorkStudio REQUIRED)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -117,89 +126,67 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+  ${ROBWORK_INCLUDE_DIRS}
+	${ROBWORKSTUDIO_INCLUDE_DIRS}
+	# ${ROBWORKSIM_INCLUDE_DIRS}
 )
 
-## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/rws_ros_plugin_template.cpp
-# )
+LINK_DIRECTORIES(
+	${ROBWORK_LIBRARY_DIRS}
+	${ROBWORKSTUDIO_LIBRARY_DIRS}
+	# ${ROBWORKSIM_LIBRARY_DIRS}
+)
 
 ## Add cmake target dependencies of the library
-## as an example, code may need to be generated before libraries
-## either from message generation or dynamic reconfigure
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# UI files
+SET(
+  UisFiles
+  src/rws_ros_plugin_template.ui
+)
 
-## Declare a C++ executable
-## With catkin_make all packages are built within a single CMake context
-## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/rws_ros_plugin_template_node.cpp)
+# HPP files
+SET(
+  MocHeaders
+  src/rws_ros_plugin_template.hpp
+) 
 
-## Rename C++ executable without prefix
-## The above recommended prefix causes long target names, the following renames the
-## target back to the shorter version for ease of user use
-## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
-# set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
+# CPP files        
+SET(
+  SrcFiles
+  src/rws_ros_plugin_template.cpp
+) 
 
-## Add cmake target dependencies of the executable
-## same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+########################################################################
+#
+# Wrap MOC headers & resources
+#
+########################################################################
+SET(MocSrcFiles)
+QT5_WRAP_CPP(MocSrcFiles ${MocHeaders})
+SET(RccSrcFiles)
+QT5_ADD_RESOURCES(
+  RccSrcFiles
+  src/resources.qrc
+)
+QT5_WRAP_UI(UiHeaders ${UisFiles})
 
-## Specify libraries to link a library or executable target against
-# target_link_libraries(${PROJECT_NAME}_node
-#   ${catkin_LIBRARIES}
-# )
+SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 
-#############
-## Install ##
-#############
+########################################################################
+#
+# Add targets
+# CHANGE TARGET NAME. THIS WILL BECOME THE LIBRARY NAME ACCORDING
+# TO THE FOLLOWING FORMAT: lib<target name>.so
+# ADD LIBRARIES AS REQUIRED.
+# UNCOMMMENT RobWorkSim IF REQUIRED.
+#
+########################################################################
+add_library(rws_ros_plugin_template MODULE ${SrcFiles} ${MocSrcFiles} ${RccSrcFiles} ${UiHeaders})
+target_link_libraries(rws_ros_plugin_template -lGL -lGLU -lglut -lm
+  ${ROBWORKSTUDIO_LIBRARIES}
+  ${ROBWORK_LIBRARIES}
+  #${ROBWORKSIM_LIBRARIES}
+  ${catkin_LIBRARIES}
+)
 
-# all install targets should use catkin DESTINATION variables
-# See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
-
-## Mark executable scripts (Python etc.) for installation
-## in contrast to setup.py, you can choose the destination
-# catkin_install_python(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
-
-## Mark executables for installation
-## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
-# install(TARGETS ${PROJECT_NAME}_node
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
-
-## Mark libraries for installation
-## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
-# install(TARGETS ${PROJECT_NAME}
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
-# )
-
-## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
-#   PATTERN ".svn" EXCLUDE
-# )
-
-## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
-
-#############
-## Testing ##
-#############
-
-## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_rws_ros_plugin_template.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
-
-## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)
